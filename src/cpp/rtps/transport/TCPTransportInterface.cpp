@@ -147,7 +147,7 @@ void TCPTransportInterface::clean()
     }
 
     {
-        std::vector<std::shared_ptr<TCPChannelResource>> channels;
+        std::vector<std::shared_ptr<TCPChannelResource> > channels;
 
         {
             std::unique_lock<std::mutex> scopedLock(sockets_map_mutex_);
@@ -326,7 +326,8 @@ bool TCPTransportInterface::DoInputLocatorsMatch(
     return IPLocator::getPhysicalPort(left) ==  IPLocator::getPhysicalPort(right);
 }
 
-bool TCPTransportInterface::init()
+bool TCPTransportInterface::init(
+        const fastrtps::rtps::PropertyPolicy*)
 {
     apply_tls_config();
     if (configuration()->sendBufferSize == 0 || configuration()->receiveBufferSize == 0)
@@ -686,7 +687,7 @@ bool TCPTransportInterface::OpenInputChannel(
 
 void TCPTransportInterface::keep_alive()
 {
-    std::map<Locator_t, std::shared_ptr<TCPChannelResource>> tmp_vec;
+    std::map<Locator_t, std::shared_ptr<TCPChannelResource> > tmp_vec;
 
     {
         std::unique_lock<std::mutex> scopedLock(sockets_map_mutex_); // Why mutex here?
@@ -1205,7 +1206,7 @@ void TCPTransportInterface::SocketAccepted(
 
 #if TLS_FOUND
 void TCPTransportInterface::SecureSocketAccepted(
-        std::shared_ptr<asio::ssl::stream<asio::ip::tcp::socket>> socket,
+        std::shared_ptr<asio::ssl::stream<asio::ip::tcp::socket> > socket,
         const Locator_t& locator,
         const asio::error_code& error)
 {
