@@ -102,7 +102,8 @@ public:
             const std::string& xml_config_file,
             bool dynamic_data,
             int forced_domain,
-            LatencyDataSizes& latency_data_sizes);
+            LatencyDataSizes& latency_data_sizes,
+            bool use_loan_sample_api);
 
     void run();
 
@@ -172,6 +173,7 @@ public:
     int forced_domain_;
     int subscribers_;
     unsigned int samples_;
+    bool use_loan_sample_api_ = false;
 
     /* Topics */
     eprosima::fastdds::dds::Topic* latency_data_sub_topic_;

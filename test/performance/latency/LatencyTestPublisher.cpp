@@ -106,7 +106,8 @@ bool LatencyTestPublisher::init(
         const string& xml_config_file,
         bool dynamic_data,
         int forced_domain,
-        LatencyDataSizes& latency_data_sizes)
+        LatencyDataSizes& latency_data_sizes,
+        bool use_loan_sample_api)
 {
     // Initialize state
     xml_config_file_ = xml_config_file;
@@ -118,6 +119,7 @@ bool LatencyTestPublisher::init(
     dynamic_data_ = dynamic_data;
     forced_domain_ = forced_domain;
     raw_data_file_ = raw_data_file;
+    use_loan_sample_api_ = use_loan_sample_api;
 
     data_size_pub_ = latency_data_sizes.sample_sizes();
 
