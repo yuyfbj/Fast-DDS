@@ -48,6 +48,13 @@ if __name__ == '__main__':
         required=False
     )
     parser.add_argument(
+        '-l',
+        '--loan_sample_api',
+        action='store_true',
+        help='Enables the use of the loan sample API (Defaults: disable)',
+        required=False,
+    )
+    parser.add_argument(
         '-i',
         '--interprocess',
         action='store_true',
@@ -59,6 +66,7 @@ if __name__ == '__main__':
     xml_file = args.xml_file
     security = args.security
     interprocess = args.interprocess
+    loan_sample_api = args.loan_sample_api
 
     if security and not interprocess:
         print('Intra-process delivery NOT supported with security')
@@ -127,6 +135,11 @@ if __name__ == '__main__':
             print('Cannot find CERTS_PATH environment variable')
             exit(1)  # Exit with error
 
+    # Loan sample API
+    loan_sample_api_options = []
+    if loan_sample_api is True:
+        loan_sample_api_options = ['--loan_sample_api=true']
+
     # Domain
     domain = str(os.getpid() % 230)
     domain_options = ['--domain', domain]
@@ -146,21 +159,41 @@ if __name__ == '__main__':
             'subscriber',
         ]
 
-        # Manage security
+        # Manage security and loan sample API
         if security is True:
-            pub_command.append(
-                './measurements_interprocess_{}_security.csv'.format(
-                    reliability
+            if loan_sample_api is True:
+                pub_command.append(
+                    './measurements_interprocess_{}_security_loan_sample_api.csv'.format(
+                        reliability
+                    )
                 )
-            )
-            pub_command += security_options
-            sub_command += security_options
+                pub_command += loan_sample_api_options
+                pub_command += security_options
+                sub_command += loan_sample_api_options
+                sub_command += security_options
+            else:
+                pub_command.append(
+                    './measurements_interprocess_{}_security.csv'.format(
+                        reliability
+                    )
+                )
+                pub_command += security_options
+                sub_command += security_options
         else:
-            pub_command.append(
-                './measurements_interprocess_{}.csv'.format(
-                    reliability
+            if loan_sample_api is True:
+                pub_command.append(
+                    './measurements_interprocess_{}_loan_sample_api.csv'.format(
+                        reliability
+                    )
                 )
-            )
+                pub_command += loan_sample_api_options
+                sub_command += loan_sample_api_options
+            else:
+                pub_command.append(
+                    './measurements_interprocess_{}.csv'.format(
+                        reliability
+                    )
+                )
 
         pub_command += domain_options
         pub_command += xml_options
@@ -200,20 +233,37 @@ if __name__ == '__main__':
             '--export_raw_data',
         ]
 
-        # Manage security
+        # Manage security and loan sample API
         if security is True:
-            command.append(
-                './measurements_intraprocess_{}_security.csv'.format(
-                    reliability
+            if loan_sample_api is True:
+                command.append(
+                    '.measurements_intraprocess_{}_security_loan_sample_api.csv'.format(
+                        reliability
+                    )
                 )
-            )
-            command += security_options
+                command += loan_sample_api_options
+                command += security_options
+            else:
+                command.append(
+                    './measurements_intraprocess_{}_security.csv'.format(
+                        reliability
+                    )
+                )
+                command += security_options
         else:
-            command.append(
-                './measurements_intraprocess_{}.csv'.format(
-                    reliability
+            if loan_sample_api is True:
+                command.append(
+                    './measurements_intraprocess_{}_loan_sample_api.csv'.format(
+                        reliability
+                    )
                 )
-            )
+                command += loan_sample_api_options
+            else:
+                command.append(
+                    './measurements_intraprocess_{}.csv'.format(
+                        reliability
+                    )
+                )
 
         command += domain_options
         command += xml_options
