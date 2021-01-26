@@ -119,6 +119,34 @@ if(PYTHONINTERP_FOUND)
             set_property(TEST performance.latency.${latency_test_name}  APPEND PROPERTY ENVIRONMENT "PATH=${WIN_PATH}")
         endif()
 
+        # Add test using loan sample API
+        add_test(
+            NAME performance.latency.${latency_test_name}_loan_sample_api
+            COMMAND ${PYTHON_EXECUTABLE}
+            ${CMAKE_CURRENT_SOURCE_DIR}/latency_tests.py
+            ${LATENCY_TEST_BIN}
+            --xml_file ${CMAKE_CURRENT_SOURCE_DIR}/xml/${latency_test_name}.xml
+            --demands_file ${CMAKE_CURRENT_SOURCE_DIR}/payloads_demands.csv
+            --loan_sample_api
+            ${interproces_flag}
+        )
+
+        # Set test properties
+        set_property(
+            TEST performance.latency.${latency_test_name}_loan_sample_api
+            PROPERTY LABELS "NoMemoryCheck"
+        )
+        set_property(
+            TEST performance.latency.${latency_test_name}_loan_sample_api
+            APPEND PROPERTY ENVIRONMENT "LATENCY_TEST_BIN=$<TARGET_FILE:LatencyTest>"
+        )
+        if(WIN32)
+            set_property(
+                TEST performance.latency.${latency_test_name}_loan_sample_api
+                APPEND  PROPERTY ENVIRONMENT "PATH=${WIN_PATH}"
+            )
+        endif()
+
         # If there is security, add a secure test as well
         if(SECURITY AND (${latency_test_name} MATCHES "^interprocess"))
             # Add the secure verison
@@ -148,6 +176,39 @@ if(PYTHONINTERP_FOUND)
             )
             if(WIN32)
                 set_property(TEST performance.latency.${latency_test_name}_security APPEND PROPERTY ENVIRONMENT "PATH=${WIN_PATH}")
+            endif()
+
+            # Add test using loan sample API with security
+            add_test(
+                NAME performance.latency.${latency_test_name}_security_loan_sample_api
+                COMMAND ${PYTHON_EXECUTABLE}
+                ${CMAKE_CURRENT_SOURCE_DIR}/latency_tests.py
+                ${LATENCY_TEST_BIN}
+                --xml_file ${CMAKE_CURRENT_SOURCE_DIR}/xml/${latency_test_name}.xml
+                --demands_file ${CMAKE_CURRENT_SOURCE_DIR}/payloads_demands.csv
+                --security
+                --loan_sample_api
+                ${interproces_flag}
+            )
+
+            # Set test properties
+            set_property(
+                TEST performance.latency.${latency_test_name}_security_loan_sample_api
+                PROPERTY LABELS "NoMemoryCheck"
+            )
+            set_property(
+                TEST performance.latency.${latency_test_name}_security_loan_sample_api
+                APPEND PROPERTY ENVIRONMENT "LATENCY_TEST_BIN=$<TARGET_FILE:LatencyTest>"
+            )
+            set_property(
+                TEST performance.latency.${latency_test_name}_security_loan_sample_api
+                APPEND PROPERTY ENVIRONMENT "CERTS_PATH=${PROJECT_SOURCE_DIR}/test/certs"
+            )
+            if(WIN32)
+                set_property(
+                    TEST performance.latency.${latency_test_name}_security_loan_sample_api
+                    APPEND PROPERTY ENVIRONMENT "PATH=${WIN_PATH}"
+                )
             endif()
         endif()
     endforeach(latency_test_name)
