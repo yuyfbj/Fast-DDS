@@ -139,7 +139,8 @@ enum  optionIndex
     XML_FILE,
     DYNAMIC_TYPES,
     FORCED_DOMAIN,
-    FILE_R
+    FILE_R,
+    LOAN_SAMPLE_API
 };
 
 enum TestAgent
@@ -153,44 +154,45 @@ const option::Descriptor usage[] = {
     { UNKNOWN_OPT,     0, "",  "",                Arg::None,
       "Usage: LatencyTest <publisher|subscriber|both>\n\nGeneral options:" },
     { HELP,            0, "h", "help",            Arg::None,
-      "  -h           --help                Produce help message." },
+      "  -h           --help                    Produce help message." },
     { RELIABILITY,     0, "r", "reliability",     Arg::Required,
-      "  -r <arg>,    --reliability=<arg>   Set reliability (\"reliable\"/\"besteffort\")."},
+      "  -r <arg>,    --reliability=<arg>       Set reliability (\"reliable\"/\"besteffort\")."},
     { SAMPLES,         0, "s", "samples",         Arg::Numeric,
-      "  -s <num>,    --samples=<num>       Number of samples." },
+      "  -s <num>,    --samples=<num>           Number of samples." },
+    { LOAN_SAMPLE_API, 0, "l", "loan_sample_api", Arg::Required,
+      "  -l <arg>,    --loan_sample_api=<arg>   Use loan sample API (\"true\"/\"false\")." },
     { SEED,            0, "",  "seed",            Arg::Numeric,
-      "               --seed=<num>          Seed to calculate domain and topic." },
+      "               --seed=<num>              Seed to calculate domain and topic." },
     { HOSTNAME,        0, "",  "hostname",        Arg::None,
-      "               --hostname            Append hostname to the topic." },
+      "               --hostname                Append hostname to the topic." },
     { XML_FILE,        0, "",  "xml",             Arg::String,
-      "               --xml                 XML Configuration file." },
-    { FORCED_DOMAIN,   0, "",  "domain",          Arg::Numeric,  "               --domain              RTPS Domain." },
+      "               --xml                     XML Configuration file." },
+    { FORCED_DOMAIN,   0, "",  "domain",          Arg::Numeric,
+      "               --domain                  RTPS Domain." },
     { DYNAMIC_TYPES,   0, "",  "dynamic_types",   Arg::None,
-      "               --dynamic_types       Use dynamic types." },
+      "               --dynamic_types           Use dynamic types." },
 #if HAVE_SECURITY
-    {
-        USE_SECURITY,    0, "",  "security",        Arg::Required,
-        "               --security <arg>      Echo mode (\"true\"/\"false\")."
-    },
+    { USE_SECURITY,    0, "",  "security",        Arg::Required,
+      "               --security <arg>          Echo mode (\"true\"/\"false\")." },
     { CERTS_PATH,      0, "",  "certs",           Arg::Required,
-      "               --certs <arg>         Path where located certificates." },
+      "               --certs <arg>             Path where located certificates." },
 #endif // if HAVE_SECURITY
     {
         UNKNOWN_OPT,     0, "",  "",                Arg::None,     "\nPublisher/Both options:"
     },
     { SUBSCRIBERS,     0, "n", "subscribers",     Arg::Numeric,
-      "  -n <num>,    --subscribers=<arg>   Number of subscribers." },
+      "  -n <num>,    --subscribers=<arg>       Number of subscribers." },
     { EXPORT_CSV,      0, "",  "export_csv",      Arg::None,
-      "               --export_csv          Flag to export a CSV file." },
+      "               --export_csv              Flag to export a CSV file." },
     { EXPORT_RAW_DATA, 0, "",  "export_raw_data", Arg::String,
-      "               --export_raw_data     File name to export all raw data as CSV." },
+      "               --export_raw_data         File name to export all raw data as CSV." },
     { EXPORT_PREFIX,   0, "",  "export_prefix",   Arg::String,
-      "               --export_prefix       File prefix for the CSV file." },
+      "               --export_prefix           File prefix for the CSV file." },
     { UNKNOWN_OPT,     0, "",  "",                Arg::None,     "\nSubscriber options:"},
     { ECHO_OPT,        0, "e", "echo",            Arg::Required,
-      "  -e <arg>,    --echo=<arg>          Echo mode (\"true\"/\"false\")." },
-    { FILE_R,        0, "f", "file",            Arg::Required,
-      "  -f <arg>,  --file=<arg>             File to read the payload demands from." },
+      "  -e <arg>,    --echo=<arg>              Echo mode (\"true\"/\"false\")." },
+    { FILE_R,          0, "f", "file",            Arg::Required,
+      "  -f <arg>,    --file=<arg>              File to read the payload demands from." },
     { 0, 0, 0, 0, 0, 0 }
 };
 
@@ -295,6 +297,7 @@ int main(
     bool dynamic_types = false;
     int forced_domain = -1;
     std::string demands_file = "";
+    bool use_loan_sample_api = false;
 
     argc -= (argc > 0);
     argv += (argc > 0); // skip program name argv[0] if present
@@ -448,6 +451,21 @@ int main(
             case FILE_R:
                 demands_file = opt.arg;
                 break;
+            case LOAN_SAMPLE_API:
+                if (strcmp(opt.arg, "true") == 0)
+                {
+                    use_loan_sample_api = true;
+                }
+                else if (strcmp(opt.arg, "false") == 0)
+                {
+                    use_loan_sample_api = false;
+                }
+                else
+                {
+                    option::printUsage(fwrite, stdout, usage, columns);
+                    return -1;
+                }
+                break;
             case UNKNOWN_OPT:
                 option::printUsage(fwrite, stdout, usage, columns);
                 return 0;
@@ -518,7 +536,7 @@ int main(
         LatencyTestPublisher latency_publisher;
         if (latency_publisher.init(subscribers, samples, reliable, seed, hostname, export_csv, export_prefix,
                 raw_data_file, pub_part_property_policy, pub_property_policy, xml_config_file,
-                dynamic_types, forced_domain, data_sizes))
+                dynamic_types, forced_domain, data_sizes, use_loan_sample_api))
         {
             latency_publisher.run();
         }
@@ -533,7 +551,7 @@ int main(
         LatencyTestSubscriber latency_subscriber;
         if (latency_subscriber.init(echo, samples, reliable, seed, hostname, sub_part_property_policy,
                 sub_property_policy,
-                xml_config_file, dynamic_types, forced_domain, data_sizes))
+                xml_config_file, dynamic_types, forced_domain, data_sizes, use_loan_sample_api))
         {
             latency_subscriber.run();
         }
@@ -552,7 +570,7 @@ int main(
         LatencyTestPublisher latency_publisher;
         bool pub_init = latency_publisher.init(subscribers, samples, reliable, seed, hostname, export_csv,
                         export_prefix, raw_data_file, pub_part_property_policy, pub_property_policy,
-                        xml_config_file, dynamic_types, forced_domain, data_sizes);
+                        xml_config_file, dynamic_types, forced_domain, data_sizes, use_loan_sample_api);
 
         // Initialize subscribers
         std::vector<std::shared_ptr<LatencyTestSubscriber>> latency_subscribers;
@@ -563,7 +581,8 @@ int main(
             latency_subscribers.push_back(std::make_shared<LatencyTestSubscriber>());
             sub_init &= latency_subscribers.back()->init(echo, samples, reliable, seed, hostname,
                             sub_part_property_policy,
-                            sub_property_policy, xml_config_file, dynamic_types, forced_domain, data_sizes);
+                            sub_property_policy, xml_config_file, dynamic_types, forced_domain, data_sizes, 
+                            use_loan_sample_api);
         }
 
         // Spawn run threads
