@@ -704,6 +704,8 @@ void LatencyTestPublisher::export_csv(
 bool LatencyTestPublisher::test(
         uint32_t datasize)
 {
+    void* sample = nullptr;
+
     test_status_ = 0;
     received_count_ = 0;
     if (dynamic_data_)
@@ -732,9 +734,41 @@ bool LatencyTestPublisher::test(
     else
     {
         latency_type_in_ = static_cast<LatencyType*>(latency_data_type_->createData());
-        latency_type_out_ = static_cast<LatencyType*>(latency_data_type_->createData());
         latency_type_in_->data.resize(datasize, 0);
-        latency_type_out_->data.resize(datasize, 0);
+        // Loan sample API
+        if (use_loan_sample_api_)
+        {
+            ReturnCode_t ret = data_writer_->loan_sample(sample);
+            if (ReturnCode_t::RETCODE_OK == ret)
+            {
+                logError(LatencyTest, "Sample correctly loaned");
+            }
+            else if (ReturnCode_t::RETCODE_ILLEGAL_OPERATION == ret)
+            {
+                logError(LatencyTest, "Data type does not support loans");
+                return false;
+            }
+            else if (ReturnCode_t::RETCODE_NOT_ENABLED == ret)
+            {
+                logError(LatencyTest, "DataWriter not enabled");
+                return false;
+            }
+            else if (ReturnCode_t::RETCODE_OUT_OF_RESOURCES == ret)
+            {
+                logError(LatencyTest, "Out of resources: Pool exhausted");
+                return false;
+            }
+            else
+            {
+                logError(LatencyTest, "This should not happen");
+                return false;
+            }
+        }
+        else
+        {
+            latency_type_out_ = static_cast<LatencyType*>(latency_data_type_->createData());
+            latency_type_out_->data.resize(datasize, 0);
+        }
     }
 
     times_.clear();
