@@ -514,6 +514,18 @@ int main(
     }
 #endif // if HAVE_SECURITY
 
+    // Check parameters validity
+    if (use_security && test_agent == TestAgent::BOTH)
+    {
+        logError(LatencyTest, "Intra-process delivery NOT supported with security");
+        return 1;
+    }
+    else if (use_loan_sample_api && dynamic_types)
+    {
+        logError(LatencyTest, "Loan sample API NOT supported with dynamic types");
+        return 1;
+    }
+
     // Load an XML file with predefined profiles for publisher and subscriber
     if (xml_config_file.length() > 0)
     {
