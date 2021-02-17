@@ -336,6 +336,10 @@ public:
         return new_updates_.exchange(0);
     }
 
+    //! Add a server to the list of remote servers
+    void add_server(
+            fastrtps::rtps::GuidPrefix_t server);
+
 protected:
 
     // change a cacheChange by update or new disposal
