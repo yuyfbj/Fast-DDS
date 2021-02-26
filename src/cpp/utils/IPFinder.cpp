@@ -322,7 +322,7 @@ bool IPFinder::getAllMACAddress(
     return true;
 }
 
-#elif defined(__linux__)
+#elif defined(__linux__) || defined(__QNXNTO__)
 
 bool IPFinder::getAllMACAddress(
         std::vector<info_MAC>* macs)
